@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Prakriti TTS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    audio {
+      width: 100%;
+      margin-top: 20px;
+    }
+    #status {
+      margin-top: 10px;
+      font-style: italic;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h2>Text to Speech (Edge-TTS)</h2>
+  <textarea id="text" rows="5" placeholder="Enter your text here..."></textarea>
+  <br><br>
+  <button id="generateBtn" onclick="generate()">Generate Speech</button>
+  <div id="status"></div>
+  <br>
+  <audio id="player" controls style="display:none;"></audio>
+
+  <script>
+    async function generate() {
+      const text = document.getElementById("text").value.trim();
+      const btn = document.getElementById("generateBtn");
+      const status = document.getElementById("status");
+      const player = document.getElementById("player");
+
+      if (!text) {
+        alert("Please enter some text!");
+        return;
+      }
+
+      // Disable button and show loading
+      btn.disabled = true;
+      status.textContent = "Generating speech...";
+      player.style.display = "none";
+
+      try {
+        const formData = new FormData();
+        formData.append("text", text);
+
+        const response = await fetch("http://127.0.0.1:8000/tts", {
+  method: "POST",
+  body: formData
+});
+
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        player.src = url;
+        player.style.display = "block";
+        player.play();
+        
+        status.textContent = "Speech generated successfully!";
+        status.style.color = "green";
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Error generating speech: " + error.message);
+        status.textContent = "Error occurred!";
+        status.style.color = "red";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
